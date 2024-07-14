@@ -5,7 +5,10 @@ environment:
   sdk: ^3.0.0
 
 dependencies:
-  dart_appwrite: 11.0.2
+  chaleno: ^0.0.7
+  equatable: ^2.0.5
+  pocketbase: ^0.11.0
+  uuid: ^4.4.2
 
 dev_dependencies:
   lints: ^2.0.0
