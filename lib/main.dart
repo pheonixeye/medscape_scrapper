@@ -1,24 +1,43 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 import 'dart:async';
+// import 'dart:io';
 
 import 'package:chaleno/chaleno.dart';
+import 'package:console_bars/console_bars.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:starter_template/models/med_article.dart';
 import 'package:uuid/uuid.dart';
 
-final _url = String.fromEnvironment("BASE_POCKETBASE_URL");
+// final _url = Platform.environment["BASE_POCKETBASE_URL"]!;
 
+final _medscapeUrl = "https://www.medscape.com/index/list_13470_";
+final _url = "https://server-proklinik.fly.dev/";
 final _pb = PocketBase(_url);
 
-const String _medscapeUrl = String.fromEnvironment("MEDSCAPE_URL");
+// final String _medscapeUrl = Platform.environment["MEDSCAPE_URL"]!;
 
 Future<dynamic> main(final context) async {
+  final deleteBar = FillingBar(
+    desc: "Deleting Old Articles",
+    total: 100,
+    time: true,
+    fill: '*',
+    percentage: true,
+  );
   final currentArticles =
       await _pb.collection("medscape").getFullList(batch: 100);
   for (var article in currentArticles) {
     await _pb.collection("medscape").delete(article.id);
+    deleteBar.increment();
   }
+
+  final scrappingBar = FillingBar(
+    desc: "Scrapping Articles",
+    total: 100,
+    time: true,
+    percentage: true,
+  );
 
   List<Result> _results = [];
   for (var i = 0; i < 5; i++) {
@@ -28,6 +47,7 @@ Future<dynamic> main(final context) async {
         final res = p?.querySelector("#archives > ul > li:nth-child($i)");
         if (res != null) {
           _results.add(res);
+          scrappingBar.increment();
         }
       }
     });
@@ -46,7 +66,16 @@ Future<dynamic> main(final context) async {
         url: url ?? "",
         from: from ?? "");
   }).toList();
+
+  final uploadingBar = FillingBar(
+    desc: "Uploading Articles",
+    total: 100,
+    time: true,
+    fill: '↑',
+    percentage: true,
+  );
   for (final article in _articles) {
     await _pb.collection("medscape").create(body: article.toJson());
+    uploadingBar.increment();
   }
 }
